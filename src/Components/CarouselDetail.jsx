@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { Button } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { FaInfo } from "react-icons/fa";
-import MovieDetailsModal from "./MovieDetails";
+import MovieDetailsModal from "./MovieDetails"
 import { key } from "../Request";
 import axios from "axios";
 
@@ -80,9 +80,11 @@ const CarouselDetail = ({ movie, handleTrailerPlay, setShowTrailer, showtrailer 
 
           {open && (
             <MovieDetailsModal
+              movieId={movie.id}
               open={open}
               onClose={() => setOpen(false)}
-              movieId={movie.id}
+              movieTitle={movie.title}
+              movieImg={movie.backdrop_path}
             />
           )}
         </div>

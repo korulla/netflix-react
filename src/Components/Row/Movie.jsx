@@ -11,6 +11,9 @@ import {
   InformationCircleIcon,
 } from "@heroicons/react/solid";
 import CloseIcon from '@mui/icons-material/Close';
+import { UserAuth } from "../../Context/AuthContext";
+import { db } from "../../firebase";
+import { arrayUnion, arrayRemove, doc, updateDoc, onSnapshot } from "firebase/firestore";
 
 const Movie = ({ item, setOpen, open }) => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -18,6 +21,38 @@ const Movie = ({ item, setOpen, open }) => {
   const [like, setLike] = useState(false);
   const [trailerData, setTrailerData] = useState(null);
   const [playing, setPlaying] = useState(false);
+  const { user } = UserAuth();
+  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const showId = doc(db, 'users', user?.email);
+
+  const toggleWatchlist = async () => {
+    if (isInWatchlist) {
+      await updateDoc(showId, {
+        savedShows: arrayRemove({
+          id: item.id,
+          title: item.title,
+          img: item.backdrop_path
+        })
+      });
+    } else {
+      await updateDoc(showId, {
+        savedShows: arrayUnion({
+          id: item.id,
+          title: item.title,
+          img: item.backdrop_path
+        })
+      });
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'users', `${user?.email}`), (doc) => {
+      const savedShows = doc.data()?.savedShows || [];
+      setIsInWatchlist(savedShows.some(show => show.id === item.id));
+    });
+    return () => unsubscribe();
+  }, [user?.email, item.Id]);
+
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -116,7 +151,7 @@ const Movie = ({ item, setOpen, open }) => {
                     className="text-white font-bold rounded-full"
                     onMouseEnter={() => handleColorChange(index, true)}
                     onMouseLeave={handleOnLeaveIcon}
-                    onClick={index === 0 ? () => setPlaying(true) : handleDetails}
+                    onClick={index === 0 ? () => setPlaying(true) : index === 2 ? handleDetails : null}
                   >
                     {index === 0 ? (
                       playing ? (
@@ -125,13 +160,13 @@ const Movie = ({ item, setOpen, open }) => {
                         <PlayIcon className="size-12" style={{ fill: color }} />
                       )
                     ) : index === 1 ? (
-                      like ? (
-                        <FaHeart />
+                      isInWatchlist ? (
+                        <FaHeart onClick={toggleWatchlist} className="size-10"/>
                       ) : (
-                        <FaRegHeart className="size-10" style={{ fill: color }} />
+                        <FaRegHeart className="size-10" style={{ fill: color }} onClick={toggleWatchlist}/>
                       )
                     ) : (
-                      <InformationCircleIcon className="size-12" style={{ fill: color }} />
+                      <InformationCircleIcon className="size-12" style={{ fill: color }}  />
                     )}
                   </button>
                 ))}
@@ -140,6 +175,8 @@ const Movie = ({ item, setOpen, open }) => {
                     open={modalOpen}
                     onClose={() => setModalOpen(false)}
                     movieId={item.id}
+                    movieTitle={item.title}
+                    movieImg={item.backdrop_path}
                   />
                 )}
               </div>

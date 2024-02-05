@@ -6,10 +6,10 @@ import CloseIcon from "@mui/icons-material/Close";
 import { IconButton } from "@mui/material";
 import PlayIcon from "@mui/icons-material/PlayArrow";
 import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 import { key } from "../Request";
-
 import {
-  Modal,  
+  Modal,
   Button,
   Box,
   Typography,
@@ -19,8 +19,11 @@ import {
   Grid,
   Avatar,
 } from "@mui/material";
+import { UserAuth } from "../Context/AuthContext";
+import { db } from "../firebase";
+import { arrayUnion, arrayRemove, doc, updateDoc, onSnapshot } from "firebase/firestore";
 
-const MovieDetailsModal = ({ movieId, onClose }) => {
+const MovieDetailsModal = ({ movieId, onClose, movieImg, movieTitle }) => {
   const [movieData, setMovieData] = useState(null);
   const [movieCast, setMovieCast] = useState(null);
   const [directore, setDirectore] = useState(null);
@@ -28,8 +31,38 @@ const MovieDetailsModal = ({ movieId, onClose }) => {
   const [genre, setGenre] = useState(null);
   const [showTrailer, setShowTrailer] = useState(false);
   const [trailerData, setTrailerData] = useState(null);
-  const [like, setLike] = useState(false)
-  
+  const { user } = UserAuth();
+  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const showId = doc(db, 'users', user?.email);
+
+  const toggleWatchlist = async () => {
+    if (isInWatchlist) {
+      await updateDoc(showId, {
+        savedShows: arrayRemove({
+          id: movieId,
+          title: movieTitle,
+          img: movieImg
+        })
+      });
+    } else {
+      await updateDoc(showId, {
+        savedShows: arrayUnion({
+          id: movieId,
+          title: movieTitle,
+          img: movieImg
+        })
+      });
+    }
+  };
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'users', `${user?.email}`), (doc) => {
+      const savedShows = doc.data()?.savedShows || [];
+      setIsInWatchlist(savedShows.some(show => show.id === movieId));
+    });
+    return () => unsubscribe();
+  }, [user?.email, movieId]);
+
   useEffect(() => {
     const fetchMovieDetails = async () => {
       try {
@@ -87,13 +120,12 @@ const MovieDetailsModal = ({ movieId, onClose }) => {
   }, [movieId]);
 
   const handleClose = () => {
-    // setShowTrailer(false);
-    onClose()
+    onClose();
   };
 
   const handleTralerClose = () => {
     setShowTrailer(false);
-  }
+  };
 
   const handlePlayTrailer = () => {
     setShowTrailer(true);
@@ -169,11 +201,10 @@ const MovieDetailsModal = ({ movieId, onClose }) => {
                   width="100%"
                   height="400"
                   src={`https://www.youtube.com/embed/${trailerData[0].key}?autoplay=1`}
-                  frameBorder="0"
                   allowFullScreen
                   allow="autoplay"
                   style={{
-                    position: "absolute", 
+                    position: "absolute",
                     top: 0,
                     left: 0,
                     zIndex: 10,
@@ -206,13 +237,13 @@ const MovieDetailsModal = ({ movieId, onClose }) => {
                 >
                   {showTrailer ? (
                     <Button
-                    variant="contained"
-                    color="error"
-                    onClick={handleTralerClose}
-                  >
-                    <CloseIcon sx={{ mr: 1 }} />
-                    Stop
-                  </Button>
+                      variant="contained"
+                      color="error"
+                      onClick={handleTralerClose}
+                    >
+                      <CloseIcon sx={{ mr: 1 }} />
+                      Stop
+                    </Button>
                   ) : (
                     <Button
                       variant="contained"
@@ -231,10 +262,17 @@ const MovieDetailsModal = ({ movieId, onClose }) => {
                     marginLeft: -8,
                   }}
                 >
-                  <Button variant="contained" color="secondary">
-                    <AddIcon sx={{ mr: 1 }} />
-                    Add to List
-                  </Button>
+                  {isInWatchlist ? (
+                    <Button variant="contained" color="error" onClick={toggleWatchlist}>
+                      <RemoveIcon sx={{ mr: 1 }} />
+                      Remove from Watchlist
+                    </Button>
+                  ) : (
+                    <Button variant="contained" color="secondary" onClick={toggleWatchlist}>
+                      <AddIcon sx={{ mr: 1 }} />
+                      Add to Watchlist
+                    </Button>
+                  )}
                 </Grid>
               </Grid>
               <div>
