@@ -1,5 +1,4 @@
 {
-  "home": "http://korulla.github.io/netflix-react",
   "name": "react-netflix",
   "private": true,
   "version": "0.0.0",
@@ -8,9 +7,7 @@
     "dev": "vite",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "build": "vite build",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "build": "vite build"
   },
   "dependencies": {
     "@emotion/react": "^11.11.3",
