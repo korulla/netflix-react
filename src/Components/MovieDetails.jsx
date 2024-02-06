@@ -19,9 +19,10 @@ import {
   Grid,
   Avatar,
 } from "@mui/material";
-import { UserAuth } from "../Context/AuthContext";
+// import { UserAuth } from "../Context/AuthContext";
 import { db } from "../firebase";
 import { arrayUnion, arrayRemove, doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { UserAuth } from "../context/AuthContext";
 
 const MovieDetailsModal = ({ movieId, onClose, movieImg, movieTitle }) => {
   const [movieData, setMovieData] = useState(null);
@@ -33,25 +34,32 @@ const MovieDetailsModal = ({ movieId, onClose, movieImg, movieTitle }) => {
   const [trailerData, setTrailerData] = useState(null);
   const { user } = UserAuth();
   const [isInWatchlist, setIsInWatchlist] = useState(false);
-  const showId = doc(db, 'users', user?.email);
+  // const showId = doc(db, 'users', user?.email);
+  const showId = user?.email ? doc(db, 'users', user.email) : null;
+
 
   const toggleWatchlist = async () => {
-    if (isInWatchlist) {
-      await updateDoc(showId, {
-        savedShows: arrayRemove({
-          id: movieId,
-          title: movieTitle,
-          img: movieImg
-        })
-      });
-    } else {
-      await updateDoc(showId, {
-        savedShows: arrayUnion({
-          id: movieId,
-          title: movieTitle,
-          img: movieImg
-        })
-      });
+    // Check if showId exists before performing Firestore operation
+    if (showId) {
+      if (isInWatchlist) {
+        await updateDoc(showId, {
+          savedShows: arrayRemove({
+            id: movieId,
+            title: movieTitle,
+            img: movieImg
+          })
+        });
+      } else {
+        await updateDoc(showId, {
+          savedShows: arrayUnion({
+            id: movieId,
+            title: movieTitle,
+            img: movieImg
+          })
+        });
+      }
+    } else{
+      alert("sign in to add item")
     }
   };
 
