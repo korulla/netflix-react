@@ -11,9 +11,9 @@ import {
   InformationCircleIcon,
 } from "@heroicons/react/solid";
 import CloseIcon from '@mui/icons-material/Close';
-import { UserAuth } from "../../Context/AuthContext";
 import { db } from "../../firebase";
 import { arrayUnion, arrayRemove, doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { UserAuth } from "../../context/AuthContext";
 
 const Movie = ({ item, setOpen, open }) => {
   const [modalOpen, setModalOpen] = useState(false);
