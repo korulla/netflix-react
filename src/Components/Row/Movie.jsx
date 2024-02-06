@@ -23,7 +23,7 @@ const Movie = ({ item, setOpen, open }) => {
   const [playing, setPlaying] = useState(false);
   const { user } = UserAuth();
   const [isInWatchlist, setIsInWatchlist] = useState(false);
-  const showId = doc(db, 'users', user?.email);
+  const showId = user?.email ? doc(db, 'users', user.email) : null;
 
   const toggleWatchlist = async () => {
     if (isInWatchlist) {
@@ -46,12 +46,14 @@ const Movie = ({ item, setOpen, open }) => {
   };
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, 'users', `${user?.email}`), (doc) => {
-      const savedShows = doc.data()?.savedShows || [];
-      setIsInWatchlist(savedShows.some(show => show.id === item.id));
-    });
-    return () => unsubscribe();
-  }, [user?.email, item.Id]);
+    if (showId) {
+      const unsubscribe = onSnapshot(showId, (doc) => {
+        const savedShows = doc.data()?.savedShows || [];
+        setIsInWatchlist(savedShows.some(show => show.id === item.id));
+      });
+      return () => unsubscribe();
+    }
+  }, [user?.email, item.id]);
 
 
   useEffect(() => {
@@ -151,7 +153,7 @@ const Movie = ({ item, setOpen, open }) => {
                     className="text-white font-bold rounded-full"
                     onMouseEnter={() => handleColorChange(index, true)}
                     onMouseLeave={handleOnLeaveIcon}
-                    onClick={index === 0 ? () => setPlaying(true) : index === 2 ? handleDetails : null}
+                    onClick={index === 0 ? () => setPlaying(true) : (index === 2 ? handleDetails : null)}
                   >
                     {index === 0 ? (
                       playing ? (
