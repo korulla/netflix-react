@@ -1,7 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom';
 // import { UserAuth } from "../Context/AuthContext"
 import { useState } from 'react';
-import { UserAuth } from '../context/AuthContext';
+import { UserAuth } from '../Context/AuthContext';
+// import { UserAuth } from '../context/AuthContext';
 
 const Signup = () => {
   const [email, setEmail] = useState(' ')
@@ -23,7 +24,7 @@ const Signup = () => {
       <div className='w-full h-screen'>
         <img
           className='hidden sm:block absolute w-full h-full object-cover'
-          src='public/Images/signup-banner.jpg'
+          src='Images/signup-banner.jpg'
           alt='/'
         />
         <div className='bg-black/60 fixed top-0 left-0 w-full h-screen'></div>
